@@ -4,6 +4,79 @@
 #include<math.h>
 using namespace std;
 
+class meatackball{
+  private:
+   int x=1;
+   int y=1;
+   int r=0;
+   int D=0;
+   int R=8;
+   bool ballue=false;
+   bool ballmigi=false;
+   bool ballsita=false;
+   bool ballhidari=false;
+  public:
+   meatackball(){};
+   void inball(int a,int b){
+    x=a;
+    y=b;
+    r=x+16;
+    D=y+16;
+   }
+   void ue(){
+    y=y-8;
+    D=D-8;
+   }
+   void migi(){
+    x=x+8;
+    r=r+8;
+   }
+   void sita(){
+    y=y+8;
+    D=D+8;
+   }
+   void hidari(){
+    x=x-8;
+    r=r-8;
+   }
+   void uetrue(){ballue=true;}
+   void migitrue(){ballmigi=true;}
+   void sitatrue(){ballsita=true;}
+   void hidaritrue(){ballhidari=true;}
+   void movepaintball(HDC hdc){
+    HGDIOBJ orangeBrush=CreateSolidBrush(RGB(255,140,0));
+    HGDIOBJ itemBrush=SelectObject(hdc,orangeBrush);
+    Ellipse(hdc,x,y,r,D);
+    if(x+30<0||y+30<0||x>800||y>800){
+     ballDelete();
+    }
+    SelectObject(hdc,orangeBrush);
+    DeleteObject(orangeBrush);
+   }
+    void ballDelete(){
+          r=0;
+          x=1;
+          y=1;
+          D=0;
+          ballue=false;
+          ballmigi=false;
+          ballsita=false;
+          ballhidari=false;
+    }
+    int Xreturn(){
+      return (x+D)/2;
+    };
+    int Yreturn(){
+      return (r+y)/2;
+    };
+    int Rreturn(){
+      return R;
+    };
+    bool uereturn(){return ballue;}
+    bool migireturn(){return ballmigi;}
+    bool sitareturn(){return ballsita;}
+    bool hidarireturn(){return ballhidari;}
+};
 class item{
    private:
    int x=1;
@@ -20,7 +93,7 @@ class item{
         z=c;
         r=x+30;
         D=y+30;
-        R=(D-x)/2;
+        R=15;
    }
    void itempaint(HDC hdc){
          if(x==1) return;
@@ -29,35 +102,39 @@ class item{
    void itemmovepaint(HDC hdc,int a,int b){
     if(x==1){
         return;
-      }
+      } 
+        HGDIOBJ greenBrush=CreateSolidBrush(RGB(0,240,24));
+        HGDIOBJ itemBrush=SelectObject(hdc,greenBrush);
         int s=0;
         int i=0;
         i=y+b;
         i=i%z;
         i=i%2;
         if(i==0){
-          i=-5;
+          i=-2;
         }
         else{
-          i=5;
+          i=2;
         }
         y=y+i;
-        D=D+i;
+        D=y+30;
         s=x+a;
         s=s%z;
         s=s%2;
         if(s==0){
-          s=-5;
+          s=-2;
         }
         else{
-          s=5;
+          s=2;
         }
         x=x+s;
-        r=r+s;
+        r=x+30;
         Ellipse(hdc,x,y,r,D);
-        if(x>800||y>800||r<0||D<0){
+        if(x+30<0||y+30<0||x>800||y>800){
           itemDelete();
         }
+        SelectObject(hdc,greenBrush);
+        DeleteObject(greenBrush);
     };
     void itemDelete(){
           r=0;
@@ -103,7 +180,11 @@ class me{
      y=y+a;
    };
     void mepaint(HDC hdc){
+     HGDIOBJ redBrush=CreateSolidBrush(RGB(240,0,36));
+     HGDIOBJ newBrush=SelectObject(hdc,redBrush);
      Ellipse(hdc,x,r,D,y);
+     SelectObject(hdc,redBrush);
+     DeleteObject(redBrush);
    };
     int Xreturn(){
       return (x+D)/2;
@@ -164,7 +245,7 @@ class painter{
         x=x+s;
         D=D+s;
         Ellipse(hdc,x,r,D,y);
-        if(r==800){
+        if(r==800||x>D||r>y){
           r=0;
           x=1;
           y=1;
@@ -172,6 +253,10 @@ class painter{
           D=0;
         }
     };
+    void smallenemy(){
+       D=D-y/2;
+       y=y-y/2;
+    }
 };
 
 double meter(int a,int b,int c,int d){
@@ -191,6 +276,7 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp){
    RECT rctDimension;
    static random_device rnd;
    static me me;
+   static meatackball meball[10];
    static item item[3];
    static painter q[160];
    static mt19937_64 mt(rnd());
@@ -203,14 +289,46 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp){
    static int d=0;
    static int p=0;
    static int u=0;
-   static int it=0;
    static int ite=0;
+   static int ballnum=0;
    static bool isDead=false;
     int v=0;
     int w=0;
 
    switch(msg){
     case WM_KEYDOWN:
+         if(wp==VK_NUMPAD8){
+           meball[ballnum].inball(me.Xreturn(),me.Yreturn());
+           meball[ballnum].uetrue();
+           if(ballnum<10){
+            ballnum++;
+           }
+           return 0;
+         }
+         if(wp==VK_NUMPAD6){
+           meball[ballnum].inball(me.Xreturn(),me.Yreturn());
+           meball[ballnum].migitrue();
+           if(ballnum<10){
+            ballnum++;
+           }
+           return 0;
+         }
+         if(wp==VK_NUMPAD2){
+           meball[ballnum].inball(me.Xreturn(),me.Yreturn());
+           meball[ballnum].sitatrue();
+           if(ballnum<10){
+            ballnum++;
+           }
+           return 0;
+         }
+         if(wp==VK_NUMPAD4){
+           meball[ballnum].inball(me.Xreturn(),me.Yreturn());
+           meball[ballnum].hidaritrue();
+           if(ballnum<10){
+            ballnum++;
+           }
+           return 0;
+         }
          if(wp==VK_UP) v=v-3;
          if(wp==VK_DOWN) v=v+3;
          if(wp==VK_LEFT) w=w-3;
@@ -244,7 +362,31 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp){
             if(check(X,me.Rreturn(),item[l].Rreturn())==1){
               me.beamin();
               item[l].itemDelete();
+              for(int m=l;m<ite-1;m++){ 
+                item[m]=item[m+1];
+                }
+                ite--;
+                l--;
             }
+           }
+           }
+         }
+         if(meball>0){
+           for(int l=0;l<ballnum;l++){
+           for(int P=0;P<u;P++){
+           double X=meter(me.Xreturn(),me.Yreturn(),item[P].Xreturn(),item[P].Yreturn());
+           if(X>0){
+            if(check(X,meball[l].Rreturn(),q[P].Rreturn())==1){
+              q[P].smallenemy();
+              meball[l].ballDelete();
+              for(int m=l;m<ballnum-1;m++){ 
+                meball[m]=meball[m+1];
+                }
+                ballnum--;
+                l--;
+                break;
+            }
+           }
            }
            }
          }
@@ -256,32 +398,34 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp){
          if(a%10==0){
            q[p].in(a,b,c);
          }
-         if(a%40==0&&it<3){
-          item[it].itemin(a,d,c);
+         if(a%40==0&&ite<3){
+          item[ite].itemin(a,d,c);
          }
          InvalidateRect(hwnd,NULL,TRUE);
          return 0;
     case WM_PAINT:
          hdc=BeginPaint(hwnd,&ps);
-         HGDIOBJ greenBrush=CreateSolidBrush(RGB(0,240,24));
-         HGDIOBJ itemBrush=SelectObject(hdc,greenBrush);
-         if(a%40==0&&it<3){
-          item[it].itempaint(hdc);
-          it++;
-         }
-         if(it>=1){
-          for(int l=0;l<ite;l++)
+          for(int l=0;l<ballnum;l++){
+            if(meball[l].uereturn()==true){
+            meball[l].ue();
+            }
+            if(meball[l].migireturn()==true){
+            meball[l].migi();
+            }
+            if(meball[l].sitareturn()==true){
+            meball[l].sita();
+            }
+            if(meball[l].hidarireturn()==true){
+            meball[l].hidari();
+            }
+            meball[l].movepaintball(hdc);
+          }
+          for(int l=0;l<ite;l++){
            item[l].itemmovepaint(hdc,a,d);
-         }
-         SelectObject(hdc,greenBrush);
-         DeleteObject(greenBrush);
-         HGDIOBJ redBrush=CreateSolidBrush(RGB(240,0,36));
-         HGDIOBJ newBrush=SelectObject(hdc,redBrush);
+          }
          if(isDead==false){
          me.mepaint(hdc);
          }
-         SelectObject(hdc,redBrush);
-         DeleteObject(redBrush);
          HGDIOBJ oldBrush=SelectObject(hdc,GetStockObject(BLACK_BRUSH));
          if(a%10==0){
             q[p].paint(hdc);
@@ -299,7 +443,6 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp){
             p=0;
          }
          if(a%40==0&&ite<3) ite++;
-         if(it>=3) it=0;
          SelectObject(hdc, oldBrush);
          EndPaint(hwnd,&ps);
          return 0;
